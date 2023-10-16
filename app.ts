@@ -60,7 +60,7 @@ app.get('/api/v1/user/:userId', async (req, res) => {
 
 })
 
-app.post('/api/v1/task/insert', async (req, res) => {
+app.post('/api/v1/tasks/insert', async (req, res) => {
   const formData = req.body;
   console.log(formData);
   if (formData.logout === 'Log out') {
@@ -107,7 +107,28 @@ app.post('/api/v1/task/:taskId/undone', async (req, res) => {
 });
 
 
+app.post('/api/v1/task/:taskId/delete', async (req, res) => {
+  const queryString = `DELETE FROM todo WHERE (id = ${req.params.taskId})`;
+  await pool.query(queryString);
+  res.sendStatus(200);
+});
 
+
+app.post('/api/v1/task/:taskId/update',async (req, res) => {
+    const queryString = `UPDATE todo 
+    SET
+        title='${req.body.title}',
+        done=${req.body.done} 
+    WHERE (id = ${req.params.taskId})`;
+  pool
+  .query(queryString)
+  .then(() => {
+    res.send(200);
+  })
+  .catch((err) => {
+  res.send(err);
+  });
+})
 
 app.listen(port, () => {
   return console.log(`Express is listening at http://localhost:${port}`);
