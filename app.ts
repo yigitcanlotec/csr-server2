@@ -1,20 +1,23 @@
-import express from 'express';
+import express, { text } from 'express';
 import { Pool, QueryResult } from 'pg';
 import crypto from 'crypto';
-
+import cors from 'cors';
 
 
 const app = express();
 const port = 3000;
 
+app.use(cors());
+app.use(express.json());
 
-
-function generateRandomString(length) {
+function generateRandomString(length: number) {
   const buffer = crypto.randomBytes(length);
   return buffer.toString('hex');
 }
 
-function argumentString(argument, startIndex) {
+
+
+function argumentString(argument: string, startIndex: number) {
   const [ps, ...args] = process.argv;
   if (
       typeof argument &&
@@ -37,16 +40,18 @@ const pool = new Pool({
 });
 
 
-app.get('/api/v1/users/', async (req, res) => {
+app.get('/api/v1/tasks/', async (req, res) => {
     let queryString: string;
     let queryData: Array<QueryResult>;
 
-    if (req.query.filter === undefined || req.query.done === 'all') {
+    if (req.query.filter === undefined || req.query.filter === 'all') {
         queryString = 'SELECT * FROM todo ORDER BY id ASC';
         queryData = (await pool.query(queryString)).rows;
+        // res.status(200).send(queryData);
     } else {
-        queryString = `SELECT * FROM todo WHERE (done=${req.query.done}) ORDER BY id ASC`;
+        queryString = `SELECT * FROM todo WHERE (done=${req.query.filter}) ORDER BY id ASC`;
         queryData = (await pool.query(queryString)).rows;
+        // res.status(200).send(queryData);
     }
 
   res.status(200).send(queryData);
@@ -63,24 +68,30 @@ app.get('/api/v1/user/:userId', async (req, res) => {
 app.post('/api/v1/tasks/insert', async (req, res) => {
   const formData = req.body;
   console.log(formData);
-  if (formData.logout === 'Log out') {
-     
 
-     console.log('Not implemented.')
-     res.sendStatus(418);
-  } else {
       const queryString = `INSERT INTO todo (title, assignee, done) values ('${
           formData.title
       }', '${formData.assignee}', 
       ${
-        formData.done === undefined ? false : true
+        formData.done
       })`;
       await pool.query(queryString);
 
       res.sendStatus(200);
-  }
+  
 });
 
+
+app.post('/api/v1/task/:taskId/delete', async (req, res) => {
+  const formData = req.body;
+  console.log(formData);
+
+      const queryString = 'DELETE FROM todo WHERE id = $1';
+      await pool.query(queryString, [req.params.taskId]);
+
+      res.sendStatus(200);
+  
+});
 
 app.post('/api/v1/task/:taskId/done', async (req, res) => {
     const formData = req.body;
