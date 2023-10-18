@@ -4,27 +4,39 @@ import crypto from 'crypto';
 import cors from 'cors';
 import bcrypt = require('bcrypt');
 import 'dotenv/config'
-import { S3Client, PutObjectCommand, GetObjectCommand, ListObjectsV2Command   } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand, ListObjectsV2Command, DeleteObjectCommand  } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-
+import { rateLimit } from 'express-rate-limit';
 
 const app = express();
-const port = 3000;
+
+
+const limiter = rateLimit({
+	windowMs: 15 * 60 * 1000, // 15 minutes
+	limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+	standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
+	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+	// store: ... , // Use an external store for more precise rate limiting
+});
+
 
 app.use(
     cors({
         credentials: true,
-        origin: ['http://localhost:5500', 'http://127.0.0.1:5500'],
+        origin: process.env.ORIGIN,
     })
 );
 app.use(express.json());
+app.use(rateLimit);
 
+// Generate API key for session (token).
 function generateRandomString(length: number) {
     const buffer = crypto.randomBytes(length);
     return buffer.toString('hex');
 }
 
-function argumentString(argument: string, startIndex: number) {
+// Parsing console command argument.
+function consoleInputArgumentParser(argument: string, startIndex: number) {
     const [ps, ...args] = process.argv;
     if (
         typeof argument &&
@@ -39,13 +51,14 @@ function argumentString(argument: string, startIndex: number) {
 }
 
 const pool = new Pool({
-    user: argumentString('--user=', 7) || 'postgres',
-    host: argumentString('--host=', 7) || 'localhost',
-    database: argumentString('--database=', 11) || 'todo_app',
-    password: argumentString('--password=', 11) || 'pass123',
-    port: parseInt(argumentString('--port=', 7)) || 5432,
+    user: consoleInputArgumentParser('--user=', 7) || 'postgres',
+    host: consoleInputArgumentParser('--host=', 7) || 'localhost',
+    database: consoleInputArgumentParser('--database=', 11) || 'todo_app',
+    password: consoleInputArgumentParser('--password=', 11) || 'pass123',
+    port: parseInt(consoleInputArgumentParser('--port=', 7)) || 5432,
 });
 
+// Middleware for user authorization.
 const isAuthenticated = (req, res, next) => {
     if (req.headers.authorization) {
         const userToken = req.headers.authorization.split(' ')[1];
@@ -62,7 +75,7 @@ const isAuthenticated = (req, res, next) => {
     }
 };
 
-app.get('/api/v1/login', async (req, res) => {
+app.get('/api/login', async (req, res) => {
     let queryString = 'SELECT * FROM userdb WHERE (username = $1);';
     const userCredentials = atob(req.headers.authorization.split(' ')[1]).split(
         ':'
@@ -86,7 +99,7 @@ app.get('/api/v1/login', async (req, res) => {
     res.sendStatus(401);
 });
 
-app.post('/api/v1/register', async (req, res, next) => {
+app.post('/api/register', async (req, res, next) => {
     const queryString = 'INSERT INTO userdb(username, password) VALUES($1,$2);';
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
  
@@ -99,7 +112,16 @@ app.post('/api/v1/register', async (req, res, next) => {
         });
 });
 
-app.get('/api/v1/tasks/', isAuthenticated, async (req, res) => {
+
+app.get('/api/:user/:userId', isAuthenticated, async (req, res) => {
+  const queryString = `SELECT * FROM todo WHERE (assignee = $1 AND id = $2});`;
+  const queryData = (
+    await pool.query(queryString, [req.params.user, req.params.userId])
+    ).rows;
+    res.status(200).send(queryData);
+  });
+  
+app.get('/api/tasks', isAuthenticated, async (req, res) => {
     let queryString: string;
     let queryData: Array<QueryResult>;
 
@@ -137,17 +159,8 @@ app.get('/api/v1/tasks/', isAuthenticated, async (req, res) => {
         }
     }
 });
-
-app.get('/api/v1/:user/:userId', isAuthenticated, async (req, res) => {
-    const queryString = `SELECT * FROM todo WHERE (assignee = $1 AND id = $2});`;
-    const queryData = (
-        await pool.query(queryString, [req.params.user, req.params.userId])
-    ).rows;
-    res.status(200).send(queryData);
-});
-
-
-app.get('/api/v1/:user/tasks/get/image/:taskID', isAuthenticated, async (req, res) => {
+  
+app.get('/api/:user/tasks/image', isAuthenticated, async (req, res) => {
 
   const s3Client = new S3Client({
     region: process.env.REGION,
@@ -157,21 +170,54 @@ app.get('/api/v1/:user/tasks/get/image/:taskID', isAuthenticated, async (req, re
     }
   });
 
-  const command = new ListObjectsV2Command({
+  let command = new ListObjectsV2Command({
     Bucket: process.env.BUCKET_NAME,
-    Prefix: req.params.user + '/' + req.params.taskID
+    Prefix: req.params.user + '/' 
   });
 
 
   const response = await s3Client.send(command);
+  // console.log(response);
 
-  const files = response.Contents.map(object => object.Key);
-  res.send(files);
+  if (response.Contents){
+   
+      const files = response.Contents.map(object => object.Key);
+   
+    
+    const promises = files.map(async (file) => {
+      return getSignedUrl(s3Client, new GetObjectCommand({
+        Bucket: process.env.BUCKET_NAME,
+        Key: file
+      }), { expiresIn: 60 });
+    });
+    
+    Promise.all(promises)
+      .then((results) => {
+        const fileLinkArray = results;
+        const mapping = {};
+
+
+        files.forEach((key, index) => {
+          mapping[key] = fileLinkArray[index];
+        });
+        res.status(200).send(mapping);
+        // You can use fileLinkArray here or send it as a response, etc.
+      })
+      .catch((error) => {
+        console.error(error);
+        res.sendStatus(500);
+        // Handle errors here
+      });
+  
+    
+  } else {
+    res.sendStatus(204);
+  }
+  
 
 });
 
-
-app.post('/api/v1/tasks/insert/image', isAuthenticated, async (req, res) => {
+app.post('/api/task/insert/image', isAuthenticated, async (req, res) => {
 
   const s3Client = new S3Client({
     region: process.env.REGION,
@@ -192,8 +238,7 @@ app.post('/api/v1/tasks/insert/image', isAuthenticated, async (req, res) => {
 
 });
 
-
-app.post('/api/v1/tasks/insert', isAuthenticated, async (req, res) => {
+app.post('/api/task/insert', isAuthenticated, async (req, res) => {
     const formData = req.body;
     let queryString = '';
     const userToken = req.headers.authorization.split(' ')[1];
@@ -206,14 +251,56 @@ app.post('/api/v1/tasks/insert', isAuthenticated, async (req, res) => {
     res.sendStatus(200);
 });
 
-app.post('/api/v1/task/:taskId/delete', isAuthenticated, async (req, res) => {
-    const formData = req.body;
+app.post('/api/task/:taskId/delete', isAuthenticated, async (req, res) => {
     const queryString = 'DELETE FROM todo WHERE (id = $1 AND assignee = $2);';
     await pool.query(queryString, [req.params.taskId, req.body.assignee]);
+    const s3Client = new S3Client({
+      region: process.env.REGION,
+      credentials: {
+        accessKeyId: process.env.ACCESS_KEY_ID,
+        secretAccessKey: process.env.SECRET_ACCESS_KEY,
+      }
+    });
+    const params = {
+      Bucket: process.env.BUCKET_NAME,
+      Key: req.body.assignee + '/' + req.params.taskId
+    };
+
+    try {
+      // List objects within the folder
+      const listParams = {
+        Bucket: process.env.BUCKET_NAME,
+        Prefix: req.body.assignee + '/' + req.params.taskId,
+      };
+      const data = await s3Client.send(new ListObjectsV2Command(listParams));
+  
+      // Delete each object within the folder
+      const deletePromises = data.Contents.map(async (object) => {
+        const deleteParams = {
+          Bucket: process.env.BUCKET_NAME,
+          Key: object.Key,
+        };
+        await s3Client.send(new DeleteObjectCommand(deleteParams));
+        // console.log(`Object deleted successfully: ${object.Key}`);
+      });
+  
+      // Wait for all delete operations to complete
+      await Promise.all(deletePromises);
+  
+      // Delete the folder itself (prefix)
+      const deleteFolderParams = {
+        Bucket: process.env.BUCKET_NAME,
+        Key: req.body.assignee + '/' + req.params.taskId,
+      };
+      await s3Client.send(new DeleteObjectCommand(deleteFolderParams));
+      // console.log(`Folder deleted successfully: ${req.body.assignee + '/' + req.params.taskId}`);
+    } catch (error) {
+      // console.error('Error deleting folder:', error);
+    }
     res.sendStatus(200);
 });
 
-app.post('/api/v1/task/:taskId/done', isAuthenticated, async (req, res) => {
+app.post('/api/task/:taskId/done', isAuthenticated, async (req, res) => {
     const queryString = `UPDATE todo 
                           SET
                               done=true 
@@ -222,7 +309,7 @@ app.post('/api/v1/task/:taskId/done', isAuthenticated, async (req, res) => {
     res.sendStatus(200);
 });
 
-app.post('/api/v1/task/:taskId/undone', async (req, res) => {
+app.post('/api/task/:taskId/undone', async (req, res) => {
     const queryString = `UPDATE todo 
                             SET
                                 done=false 
@@ -231,13 +318,13 @@ app.post('/api/v1/task/:taskId/undone', async (req, res) => {
     res.sendStatus(200);
 });
 
-app.post('/api/v1/task/:taskId/delete', async (req, res) => {
+app.post('/api/task/:taskId/delete', async (req, res) => {
     const queryString = `DELETE FROM todo WHERE (id = $1 AND assignee = $2);`;
     await pool.query(queryString, [req.params.taskId, req.body.assignee]);
     res.sendStatus(200);
 });
 
-app.post('/api/v1/task/:taskId/update', (req, res) => {
+app.post('/api/task/:taskId/update', (req, res) => {
     const queryString = `UPDATE todo 
     SET
         title=$1,
@@ -258,7 +345,7 @@ app.post('/api/v1/task/:taskId/update', (req, res) => {
         });
 });
 
-app.get('/api/v1/userInfo', isAuthenticated, async (req, res) => {
+app.get('/api/userInfo', isAuthenticated, async (req, res) => {
     const queryString = `SELECT (username, password) FROM userdb WHERE (session_key = $1);`;
     const userToken = req.headers.authorization.split(' ')[1];
     const queryData = (await pool.query(queryString, [userToken])).rows[0];
@@ -269,6 +356,6 @@ app.get('/api/v1/userInfo', isAuthenticated, async (req, res) => {
     res.status(200).send(credentials);
 });
 
-app.listen(port, () => {
-    return console.log(`Express is listening at http://localhost:${port}`);
+app.listen(process.env.PORT , () => {
+    return console.log(`Express is listening at http://localhost:${process.env.PORT}`);
 });
