@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import cors from 'cors';
 import bcrypt = require('bcrypt');
 import 'dotenv/config'
-import { S3Client, PutObjectCommand, GetObjectCommand  } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand, ListObjectsV2Command   } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 
@@ -144,6 +144,30 @@ app.get('/api/v1/:user/:userId', isAuthenticated, async (req, res) => {
         await pool.query(queryString, [req.params.user, req.params.userId])
     ).rows;
     res.status(200).send(queryData);
+});
+
+
+app.get('/api/v1/:user/tasks/get/image/:taskID', isAuthenticated, async (req, res) => {
+
+  const s3Client = new S3Client({
+    region: process.env.REGION,
+    credentials: {
+      accessKeyId: process.env.ACCESS_KEY_ID,
+      secretAccessKey: process.env.SECRET_ACCESS_KEY,
+    }
+  });
+
+  const command = new ListObjectsV2Command({
+    Bucket: process.env.BUCKET_NAME,
+    Prefix: req.params.user + '/' + req.params.taskID
+  });
+
+
+  const response = await s3Client.send(command);
+
+  const files = response.Contents.map(object => object.Key);
+  res.send(files);
+
 });
 
 
