@@ -7,6 +7,10 @@ import 'dotenv/config'
 import { S3Client, PutObjectCommand, GetObjectCommand, ListObjectsV2Command, DeleteObjectCommand  } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { rateLimit } from 'express-rate-limit';
+import morgan from 'morgan';
+import { exec } from 'child_process';
+import os from 'os';
+
 
 const app = express();
 
@@ -27,7 +31,14 @@ app.use(
     })
 );
 app.use(express.json());
-app.use(rateLimit);
+app.use(morgan('dev'));
+// app.use(rateLimit);
+
+// Middleware to handle invalid requests and send a 404 status error
+// app.use((req, res, next) => {
+//     res.status(404).send('Not Found');
+//   });
+  
 
 // Generate API key for session (token).
 function generateRandomString(length: number) {
@@ -74,6 +85,9 @@ const isAuthenticated = (req, res, next) => {
         res.sendStatus(400);
     }
 };
+
+
+
 
 app.get('/api/login', async (req, res) => {
     let queryString = 'SELECT * FROM userdb WHERE (username = $1);';
@@ -356,6 +370,21 @@ app.get('/api/userInfo', isAuthenticated, async (req, res) => {
     res.status(200).send(credentials);
 });
 
-app.listen(process.env.PORT , () => {
-    return console.log(`Express is listening at http://localhost:${process.env.PORT}`);
+app.listen(process.env.PORT || 3000, () => {
+    if (os.type() === 'Linux'){
+        exec("hostname -I", (error, stdout, stderr) => {
+            if (error) {
+              console.error(`Error executing command: ${error.message}`);
+              return;
+            }
+            if (stderr) {
+              console.error(`Command execution resulted in an error: ${stderr}`);
+              return;
+            }
+            // console.log(`Command output: ${stdout}`);
+            console.log(`Express is listening at http://${stdout}:${process.env.PORT}`);
+          });
+          return;
+    }
+    return console.log(`Express is listening at http://localhost:${process.env.PORT}`);;
 });
