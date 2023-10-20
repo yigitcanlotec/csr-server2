@@ -26,7 +26,8 @@ jobs:
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.SSH_SECRET_KEY }}
         script: |
-          npm ci
+          pwd
+          npm i
           npm start
           
    
