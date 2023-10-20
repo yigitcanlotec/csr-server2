@@ -28,7 +28,7 @@ jobs:
         key: ${{ secrets.SSH_SECRET_KEY }}
         script: |
           cd ~/csr-server2
-          export PORT=${{ env.PORT}}
+          export PORT=${{ env.PORT }}
           npm ci
           npm start
           
