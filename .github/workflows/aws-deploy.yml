@@ -26,8 +26,8 @@ jobs:
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.SSH_SECRET_KEY }}
         script: |
-          pwd
-          npm i
+          cd yigitcanlotec/csr-server2
+          npm ci
           npm start
           
    
