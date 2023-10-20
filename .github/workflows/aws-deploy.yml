@@ -17,7 +17,7 @@ jobs:
     - name: Install Node.js and npm
       uses: actions/setup-node@v2
       with:
-        node-version: 14
+        node-version: 20
 
     - name: Use SSH key to access server
       uses: appleboy/ssh-action@master
