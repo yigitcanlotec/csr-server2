@@ -13,11 +13,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-      with:
-        script: |
-          pwd
-          which app.ts
-          
+  
+        
     - name: Install Node.js and npm
       uses: actions/setup-node@v2
       with:
@@ -31,6 +28,7 @@ jobs:
         key: ${{ secrets.SSH_SECRET_KEY }}
         script: |
           cd ~/csr-server2
+          export PORT=${{ env.PORT}}
           npm ci
           npm start
           
