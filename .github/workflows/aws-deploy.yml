@@ -9,7 +9,6 @@ env:
   REMOTE_USER: ${{ secrets.USERNAME }}
   TARGET: ${{ secrets.TARGET_DIR }}
 
-- name: Executing remote ssh commands using ssh key
 uses: uses: appleboy/ssh-action@v1.0.0
 with:
   host: ${{ secrets.HOST_DNS }}
