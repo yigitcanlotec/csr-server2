@@ -25,7 +25,6 @@ jobs:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.SSH_SECRET_KEY }}
-        port: ${{ secrets.SERVER_PORT }}
         script: |
           cd ~/csr_server2
           git pull origin main
