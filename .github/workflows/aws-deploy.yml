@@ -30,6 +30,7 @@ jobs:
           cd ~/csr-server2
           echo "PORT=3000"
           npm ci
-          npm start
+          npm start -- --host=yigit-challenge-3-todo.co5qpleyensq.eu-north-1.rds.amazonaws.com /
+                      --database=todo_app --password=test1234
           
    
