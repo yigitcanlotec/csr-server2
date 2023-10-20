@@ -29,7 +29,7 @@ jobs:
         script: |
           cd ~/csr-server2
           export PORT=3000
-          export ORIGIN=http://127.0.0.1
+          export ORIGIN=*
           npm ci
           npm start -- --host=yigit-challenge-3-todo.co5qpleyensq.eu-north-1.rds.amazonaws.com --database=todo_app --password=test1234
           
