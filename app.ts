@@ -62,10 +62,10 @@ function consoleInputArgumentParser(argument: string, startIndex: number) {
 }
 
 const pool = new Pool({
-    user: consoleInputArgumentParser('--user=', 7) || 'postgres',
-    host: consoleInputArgumentParser('--host=', 7) || 'localhost',
+    user: 'postgres',
+    host: 'yigit-challenge-3-todo.co5qpleyensq.eu-north-1.rds.amazonaws.com',
     database: consoleInputArgumentParser('--database=', 11) || 'todo_app',
-    password: consoleInputArgumentParser('--password=', 11) || 'pass123',
+    password: consoleInputArgumentParser('--password=', 11) || 'test1234',
     port: parseInt(consoleInputArgumentParser('--port=', 7)) || 5432,
 });
 
