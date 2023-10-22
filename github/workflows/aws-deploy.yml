@@ -4,7 +4,7 @@ name: AWS Deploy
 on:
   push:
     branches:
-      - actions
+      - main
 
 jobs:
   deploy:
