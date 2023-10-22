@@ -59,6 +59,6 @@ jobs:
     - name: Install and start PM2
       run: |
           ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'sudo npm install -g pm2'
-          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'ls ~/server/'
+          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'pm2 start ~/server/dist/app.js'
           
 
