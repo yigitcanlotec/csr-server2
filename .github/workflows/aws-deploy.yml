@@ -48,5 +48,4 @@ jobs:
       run: |
           ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'sudo apt-get update' 
           ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'sudo apt-get install nodejs -y'
-          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'mkdir ~/server'
-          scp -r ./dist/app.js ubuntu@${{ secrets.HOST }}:~/server
+          scp ./dist/app.js ubuntu@${{ secrets.HOST }}:~/server
