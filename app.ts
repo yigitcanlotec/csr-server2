@@ -62,11 +62,14 @@ function consoleInputArgumentParser(argument: string, startIndex: number) {
 }
 
 const pool = new Pool({
-    user: 'postgres',
-    host: 'yigit-challenge-3-todo.co5qpleyensq.eu-north-1.rds.amazonaws.com',
-    database: consoleInputArgumentParser('--database=', 11) || 'todo_app',
-    password: consoleInputArgumentParser('--password=', 11) || 'test1234',
-    port: parseInt(consoleInputArgumentParser('--port=', 7)) || 5432,
+     user: process.env.DB_USER || 'postgres',
+    host: process.env.DB_HOST || 'localhost',
+    database: process.env.DB_NAME || 'todo_app',
+    password: process.env.DB_PASSWORD || 'pass123',
+    port: parseInt(process.env.DB_PORT) || 5432,
+	ssl: {
+      rejectUnauthorized:false
+    }
 });
 
 // Middleware for user authorization.
