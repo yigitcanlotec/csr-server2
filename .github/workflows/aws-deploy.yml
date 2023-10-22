@@ -53,11 +53,12 @@ jobs:
         host: ${{ secrets.HOST }}
         username: ubuntu
         key: ${{ secrets.SSH_SECRET_KEY }}
-        source: "./dist/app.js"
+        source: "./"
         target: "~/server"
 
     - name: Install and start PM2
       run: |
+          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'ls ~/server'
           ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'npm install -g pm2'
-          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'pm2 start app.js'
+          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'sudo pm2 start app.js'
 
