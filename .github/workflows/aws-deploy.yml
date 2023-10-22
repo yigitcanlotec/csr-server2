@@ -54,5 +54,6 @@ jobs:
       with:
         host: ${{ secrets.HOST }}
         username: ubuntu
+        key: ${{ secrets.SSH_SECRET_KEY }}
         source: "./dist/app.js"
         target: "~/server"
