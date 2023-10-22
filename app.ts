@@ -62,11 +62,11 @@ function consoleInputArgumentParser(argument: string, startIndex: number) {
 }
 
 const pool = new Pool({
-    user: consoleInputArgumentParser('--user=', 7) || 'postgres',
-    host: consoleInputArgumentParser('--host=', 7) || 'localhost',
-    database: consoleInputArgumentParser('--database=', 11) || 'todo_app',
-    password: consoleInputArgumentParser('--password=', 11) || 'pass123',
-    port: parseInt(consoleInputArgumentParser('--port=', 7)) || 5432,
+    user: process.env.DB_USER || 'postgres',
+    host: process.env.DB_HOST || 'localhost',
+    database: process.env.DB_NAME || 'todo_app',
+    password: process.env.DB_PASSWORD || 'pass123',
+    port: parseInt(process.env.DB_PORT) || 5432,
 });
 
 // Middleware for user authorization.
