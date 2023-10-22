@@ -30,7 +30,7 @@ jobs:
 
     - name: Transfer files using SCP
       run: |
-          scp -r /home/runner/work/csr-server2/csr-server2 ${{ secrets.HOST }}:~/
+          scp -r ~/csr-server2 ${{ secrets.HOST }}:~/
           cd ~/csr-server2
           npm i
           npm start
