@@ -23,12 +23,7 @@ jobs:
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/todo-yigit.pem
           chmod 600 ~/.ssh/todo-yigit.pem
           ssh-keyscan $HOST >> ~/.ssh/known_hosts
-          export PORT=3000
-          export ORIGIN=*
-          export REGION=eu-north-1
-          export ACCESS_KEY_ID=${{ secrets.ACCESS_KEY_ID }} 
-          export SECRET_ACCESS_KEY=${{ secrets.SECRET_ACCESS_KEY }} 
-          export BUCKET_NAME=lotec-challenge-3-yigit
+          
       env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_SECRET_KEY }}
           HOST: ${{ secrets.HOST }}
