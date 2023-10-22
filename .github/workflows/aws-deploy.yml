@@ -60,7 +60,6 @@ jobs:
       run: |
           ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'sudo npm install -g pm2'
           ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'export PORT=3000 && export ORIGIN=* && export REGION=eu-north-1 && export ACCESS_KEY_ID=${{ secrets.ACCESS_KEY_ID }} && export SECRET_ACCESS_KEY=${{ secrets.SECRET_ACCESS_KEY }} && export BUCKET_NAME=lotec-challenge-3-yigit'
-          
           ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'pm2 restart ~/server/dist/app.js'
           
 
