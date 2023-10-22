@@ -16,14 +16,14 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-      
+        
     - name: Set up SSH key
       run: |
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/todo-yigit.pem
           chmod 600 ~/.ssh/todo-yigit.pem
           ssh-keyscan $HOST >> ~/.ssh/known_hosts
-
+          find -type d -name 'csr-server2'
           
       env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_SECRET_KEY }}
@@ -33,4 +33,4 @@ jobs:
     - name: Run remote command via SSH
       run: |
           ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'sudo apt-get update && sudo apt-get install nodejs -y'
-          scp -r ~/csr-server2 ubuntu@${{ secrets.HOST }}:~/
+          scp -r ./csr-server ubuntu@${{ secrets.HOST }}:~/
