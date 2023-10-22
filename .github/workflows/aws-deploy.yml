@@ -23,6 +23,7 @@ jobs:
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/todo-yigit.pem
           chmod 600 ~/.ssh/todo-yigit.pem
           ssh-keyscan $HOST >> ~/.ssh/known_hosts
+          whoami
           
       env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_SECRET_KEY }}
