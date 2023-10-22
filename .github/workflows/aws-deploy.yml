@@ -1,6 +1,6 @@
 name: AWS Deploy
 
-# Trigger deployment only on push to main branch
+
 on:
   push:
     branches:
@@ -59,6 +59,8 @@ jobs:
     - name: Install and start PM2
       run: |
           ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'sudo npm install -g pm2'
-          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'pm2 start ~/server/dist/app.js'
+          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'pm2 list'
+          
+          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'pm2 restart ~/server/dist/app.js -- --host=yigit-challenge-3-todo.co5qpleyensq.eu-north-1.rds.amazonaws.com --database=todo_app --password=test1234'
           
 
