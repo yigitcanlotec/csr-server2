@@ -46,6 +46,7 @@ jobs:
   
     - name: Run remote command via SSH
       run: |
-          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'sudo apt-get update && sudo apt-get install nodejs -y'
+          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'sudo apt-get update' 
+          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'sudo apt-get install nodejs -y'
           ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'mkdir ~/server'
           scp -r ./dist/app.js ubuntu@${{ secrets.HOST }}:~/server
