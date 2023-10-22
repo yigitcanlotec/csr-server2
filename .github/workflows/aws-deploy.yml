@@ -26,9 +26,7 @@ jobs:
       run: npm install
 
     - name: Run Tests
-      run: | 
-        npm run build
-        pwd
+      run: npm run build
 
       
     - name: Set up SSH key
@@ -49,7 +47,7 @@ jobs:
           ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'sudo apt-get update' 
           ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'sudo apt-get install nodejs -y'
           
-    - name: copy file via ssh password
+    - name: Copy server file to Server
       uses: appleboy/scp-action@v0.1.4
       with:
         host: ${{ secrets.HOST }}
@@ -57,3 +55,9 @@ jobs:
         key: ${{ secrets.SSH_SECRET_KEY }}
         source: "./dist/app.js"
         target: "~/server"
+
+    - name: Install and start PM2
+      run: |
+          npm install -g pm2
+          pm2 start app.js
+
