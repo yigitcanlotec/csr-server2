@@ -28,11 +28,4 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_SECRET_KEY }}
           HOST: ${{ secrets.HOST }}
 
-    - name: Transfer files using SCP
-      run: |
-          scp -r ~/csr-server2 ${{ secrets.HOST }}:~/
-          cd ~/csr-server2
-          npm i
-          npm start
-    
-   
+  
