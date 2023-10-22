@@ -44,9 +44,7 @@ jobs:
   
     - name: Run remote command via SSH
       run: |
-          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'sudo apt-get update' 
-          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'sudo apt-get install nodejs -y && sudo apt-get install npm -y'
-          echo ~/.ssh/todo-yigit.pem
+          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'sudo apt-get update'
     - name: Copy app.js file to Server
       uses: appleboy/scp-action@v0.1.4
       with:
