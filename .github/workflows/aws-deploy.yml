@@ -57,7 +57,9 @@ jobs:
     - name: Install and start PM2
       run: |
           ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'sudo npm install -g pm2'
-          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'export PORT=3000 && export ORIGIN=* && export REGION=eu-north-1 && export ACCESS_KEY_ID=${{ secrets.ACCESS_KEY_ID }} && export SECRET_ACCESS_KEY=${{ secrets.SECRET_ACCESS_KEY }} && export BUCKET_NAME=lotec-challenge-3-yigit && export DB_PORT=5432 && export DB_HOST=yigit-challenge-3-todo.co5qpleyensq.eu-north-1.rds.amazonaws.com && export DB_PASSWORD=test1234 && sudo pm2 restart ~/server/dist/app.js'
+          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'export PORT=3000 && export ORIGIN=* && export REGION=eu-north-1 && export ACCESS_KEY_ID=${{ secrets.ACCESS_KEY_ID }} && export SECRET_ACCESS_KEY=${{ secrets.SECRET_ACCESS_KEY }} && export BUCKET_NAME=lotec-challenge-3-yigit'
+          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'export DB_PORT=5432 && export DB_HOST=yigit-challenge-3-todo.co5qpleyensq.eu-north-1.rds.amazonaws.com && export DB_PASSWORD=test1234'
+          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'sudo pm2 start ~/server/dist/app.js'
 
           
 
