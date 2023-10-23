@@ -51,7 +51,7 @@ jobs:
          
           ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} '
           if sudo pm2 list | grep "server"; then
-          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} "sudo pm2 restart ~/server/dist/app.js --name server"
+          sudo pm2 restart ~/server/dist/app.js --name server
           else
           sudo pm2 start ~/server/dist/app.js --name server
           fi'
