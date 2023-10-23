@@ -46,8 +46,8 @@ jobs:
     - name: Install and start PM2
       run: |
           ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'sudo npm install -g pm2'
-          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'touch  ~/server/.env'
-          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'echo PORT = 3000 >>  ~/server/.env && echo DB_HOST = ${{ secrets.DB_HOST }} >>  ~/server/.env && echo DB_NAME = ${{ secrets.DB_NAME }} >>  ~/server/.env && echo DB_PASSWORD = ${{ secrets.DB_PASSWORD }} >>  ~/server/.env && echo ORIGIN = '*' >>  ~/server/.env && echo ACCESS_KEY_ID = ${{ secrets.ACCESS_KEY_ID }}  >>  ~/server/.env && echo SECRET_ACCESS_KEY = ${{ secrets.SECRET_ACCESS_KEY }}  >>  ~/server/.env && echo BUCKET_NAME = lotec-challenge-3-yigit  >>  ~/server/.env'
+          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'rm ~/server/.env && touch  ~/server/.env'
+          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'echo PORT = 3000 >>  ~/server/.env && echo DB_HOST = ${{ secrets.DB_HOST }} >>  ~/server/.env && echo DB_NAME = ${{ secrets.DB_NAME }} >>  ~/server/.env && echo DB_PASSWORD = ${{ secrets.DB_PASSWORD }} >>  ~/server/.env && echo'ORIGIN=*' >>  ~/server/.env && echo ACCESS_KEY_ID = ${{ secrets.ACCESS_KEY_ID }}  >>  ~/server/.env && echo SECRET_ACCESS_KEY = ${{ secrets.SECRET_ACCESS_KEY }}  >>  ~/server/.env && echo BUCKET_NAME = lotec-challenge-3-yigit  >>  ~/server/.env'
           ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'sudo pm2 restart ~/server/dist/app.js'
 
           
