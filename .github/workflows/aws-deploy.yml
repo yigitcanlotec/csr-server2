@@ -17,17 +17,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
       
-    - name: Set up Node.js
-      uses: actions/setup-node@v2
-      with:
-          node-version: 20
-
-    - name: Install Dependencies
-      run: npm install
-
-    - name: Run Tests
-      run: npm run build
-
       
     - name: Set up SSH key
       run: |
@@ -57,8 +46,8 @@ jobs:
     - name: Install and start PM2
       run: |
           ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'sudo npm install -g pm2'
-          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'export PORT=3000 && export ORIGIN=* && export REGION=eu-north-1 && export ACCESS_KEY_ID=${{ secrets.ACCESS_KEY_ID }} && export SECRET_ACCESS_KEY=${{ secrets.SECRET_ACCESS_KEY }} && export BUCKET_NAME=lotec-challenge-3-yigit'
-          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'export DB_PORT=5432 && export DB_HOST=yigit-challenge-3-todo.co5qpleyensq.eu-north-1.rds.amazonaws.com && export DB_PASSWORD=test1234'
+          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'touch  ~/server/.env'
+          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'echo PORT = 3000 >>  ~/server/.env && echo ORIGIN = * >>  ~/server/.env && echo ACCESS_KEY_ID = ${{ secrets.ACCESS_KEY_ID }}  >>  ~/server/.env && echo SECRET_ACCESS_KEY = ${{ secrets.SECRET_ACCESS_KEY }}  >>  ~/server/.env && echo BUCKET_NAME = lotec-challenge-3-yigit  >>  ~/server/.env'
           ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'sudo pm2 restart ~/server/dist/app.js'
 
           
