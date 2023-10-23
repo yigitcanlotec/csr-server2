@@ -12,7 +12,7 @@
     "author": "Yigitcan Ustek <yigitcan.ustek@lotec.com.tr>",
     "license": "ISC",
     "devDependencies": {
-        "@types/express": "^4.17.1",
+        "@types/express": "^4.17.20",
         "typescript": "^5.2.2"
     },
     "dependencies": {
