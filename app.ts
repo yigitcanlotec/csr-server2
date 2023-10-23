@@ -24,12 +24,7 @@ const limiter = rateLimit({
 });
 
 
-app.use(
-    cors({
-        credentials: true,
-        origin: '*',
-    })
-);
+app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 // app.use(rateLimit);
@@ -46,20 +41,6 @@ function generateRandomString(length: number) {
     return buffer.toString('hex');
 }
 
-// Parsing console command argument.
-function consoleInputArgumentParser(argument: string, startIndex: number) {
-    const [ps, ...args] = process.argv;
-    if (
-        typeof argument &&
-        args.find((element) => element.includes(argument)) !== undefined
-    ) {
-        return args
-            .find((element) => element.includes(argument))
-            .substring(startIndex);
-    } else {
-        return undefined;
-    }
-}
 
 const pool = new Pool({
     user: process.env.DB_USER || 'postgres',
@@ -92,7 +73,7 @@ const isAuthenticated = (req: Request, res: Response, next: NextFunction): any =
 
 
 
-app.get('/api/login', async (req: Request, res: Response): Promise<express.Response<any, Record<string, any>>> => {
+app.get('/api/login', async (req: Request, res: Response): Promise<any> => {
     let queryString: string = 'SELECT * FROM userdb WHERE (username = $1);';
     const userCredentials: string[] = atob(req.headers.authorization.split(' ')[1]).split(':');
     if (!userCredentials) return res.sendStatus(401);
