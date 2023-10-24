@@ -1,8 +1,10 @@
 import express, { NextFunction, Request, Response } from 'express';
-import { Pool, Query, QueryResult } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
+import { QueryResult } from 'pg';
 import crypto from 'crypto';
 import cors from 'cors';
-import bcrypt = require('bcrypt');
+import bcrypt from 'bcrypt';
 import 'dotenv/config'
 import { S3Client, PutObjectCommand, GetObjectCommand, ListObjectsV2Command, DeleteObjectCommand, ListObjectsV2CommandOutput, ListObjectsV2CommandInput, DeleteObjectCommandInput  } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
