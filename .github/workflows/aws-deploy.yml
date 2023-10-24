@@ -1,10 +1,10 @@
-name: AWS Server Deploy
+name: AWS Deploy
 
 
 on:
   push:
     branches:
-      - main
+      - actions
 
 jobs:
   deploy:
@@ -13,45 +13,23 @@ jobs:
       REGION: "eu-north-1"
       BUCKET_NAME: "lotec-challenge-3-yigit"
       
+    strategy:
+      matrix:
+        node-version: [20.x]  
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
       
-      
-    - name: Set up SSH key
-      run: |
-          mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/todo-yigit.pem
-          chmod 600 ~/.ssh/todo-yigit.pem
-          ssh-keyscan $HOST >> ~/.ssh/known_hosts
-          find -type d -name 'csr-server2'
-          
-      env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_SECRET_KEY }}
-          HOST: ${{ secrets.HOST }}
-
-  
-    - name: Run remote command via SSH
-      run: |
-          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'sudo apt-get update'
-    - name: Copy app.js file to Server
-      uses: appleboy/scp-action@v0.1.4
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v2
       with:
-        host: ${{ secrets.HOST }}
-        username: ubuntu
-        key: ${{ secrets.SSH_SECRET_KEY }}
-        source: "./"
-        target: "~/server"
+        node-version: ${{ matrix.node-version }}
 
-    - name: Install and start PM2
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build with Esbuild
       run: |
-          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'sudo npm install -g pm2'
-          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'rm ~/server/.env 2> /dev/null && touch  ~/server/.env'
-          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'echo REGION = eu-north-1 >>  ~/server/.env && echo PORT = 3000 >>  ~/server/.env && echo DB_HOST = ${{ secrets.DB_HOST }} >>  ~/server/.env && echo DB_NAME = ${{ secrets.DB_NAME }} >>  ~/server/.env && echo DB_PASSWORD = ${{ secrets.DB_PASSWORD }} >>  ~/server/.env && echo 'ORIGIN=*' >>  ~/server/.env && echo ACCESS_KEY_ID = ${{ secrets.ACCESS_KEY_ID }}  >>  ~/server/.env && echo SECRET_ACCESS_KEY = ${{ secrets.SECRET_ACCESS_KEY }}  >>  ~/server/.env && echo BUCKET_NAME = lotec-challenge-3-yigit  >>  ~/server/.env'
-         
-          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} '
-          if sudo pm2 list | grep "server"; then
-          sudo pm2 restart ~/server/dist/app.js --name server
-          else
-          sudo pm2 start ~/server/dist/app.js --name server
-          fi'
+        npx esbuild app.ts --platform=node --outfile=bundled.js
+        pwd
+        ls -a
