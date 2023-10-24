@@ -29,7 +29,34 @@ jobs:
       run: npm install
 
     - name: Build with Esbuild
+      run: npx esbuild app.ts --platform=node --outfile=bundled.js
+      
+    - name: Set up SSH key
       run: |
-        npx esbuild app.ts --platform=node --outfile=bundled.js
-        pwd
-        ls -a
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/todo-yigit.pem
+          chmod 600 ~/.ssh/todo-yigit.pem
+          ssh-keyscan $HOST >> ~/.ssh/known_hosts      
+      env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_SECRET_KEY }}
+          HOST: ${{ secrets.HOST }}
+
+  
+    - name: Run remote command via SSH
+      run: |
+          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'sudo apt-get update'
+    - name: Copy app.js file to Server
+      uses: appleboy/scp-action@v0.1.4
+      with:
+        host: ${{ secrets.HOST }}
+        username: ubuntu
+        key: ${{ secrets.SSH_SECRET_KEY }}
+        source: "./bundled.js"
+        target: "~/server"
+
+    - name: Install and start PM2
+      run: |
+          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'sudo npm install -g pm2'
+          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'rm ~/server/.env 2> /dev/null && touch  ~/server/.env'
+          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'echo REGION = eu-north-1 >>  ~/server/.env && echo PORT = 3000 >>  ~/server/.env && echo DB_HOST = ${{ secrets.DB_HOST }} >>  ~/server/.env && echo DB_NAME = ${{ secrets.DB_NAME }} >>  ~/server/.env && echo DB_PASSWORD = ${{ secrets.DB_PASSWORD }} >>  ~/server/.env && echo 'ORIGIN=*' >>  ~/server/.env && echo ACCESS_KEY_ID = ${{ secrets.ACCESS_KEY_ID }}  >>  ~/server/.env && echo SECRET_ACCESS_KEY = ${{ secrets.SECRET_ACCESS_KEY }}  >>  ~/server/.env && echo BUCKET_NAME = lotec-challenge-3-yigit  >>  ~/server/.env'
+          ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'sudo pm2 restart ~/server/bundled.js --name server --log ~/server/file.log'
