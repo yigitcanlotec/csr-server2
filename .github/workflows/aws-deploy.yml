@@ -45,13 +45,13 @@ jobs:
     - name: Run remote command via SSH
       run: |
           ssh -i ~/.ssh/todo-yigit.pem ubuntu@${{ secrets.HOST }} 'sudo apt-get update'
-    - name: Copy app.js file to Server
+    - name: Copy bundled.js file to Server
       uses: appleboy/scp-action@v0.1.4
       with:
         host: ${{ secrets.HOST }}
         username: ubuntu
         key: ${{ secrets.SSH_SECRET_KEY }}
-        source: "./bundled.js"
+        source: "bundled.js"
         target: "~/server"
 
     - name: Install and start PM2
