@@ -32,5 +32,6 @@ jobs:
       run: |
         npx tsc 
         pwd
+        ls -a
         
    
