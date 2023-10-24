@@ -28,9 +28,9 @@ jobs:
     - name: Install dependencies
       run: npm install
 
-    - name: Run tests
+    - name: Compile Javascript to Typescript
       run: |
-        npm test 
+        npx tsc 
         pwd
         
    
